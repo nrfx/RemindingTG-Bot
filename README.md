@@ -11,11 +11,16 @@
 ### 2. Настройте окружение
 
 ```bash
-# Установите зависимости
+# Установите зависимости и создайте env
+cd /opt/
+git clone https://github.com/nrfx/RemindingTG-Bot
+cd /opt/RemindingTG-Bot
+python3 -m venv venv
+source venv/bin/activate
 pip install -r requirements.txt
 
 # Создайте .env из примера
-copy .env.example .env
+cp .env.example .env
 ```
 
 Откройте `.env` и вставьте свой токен:
@@ -23,6 +28,40 @@ copy .env.example .env
 ```
 BOT_TOKEN=123456789:ABCdefGHIjklMNOpqrSTUvwxYZ
 ```
+### (ОБЕСПЕЧИТЬ РАБОТУ БОТА ЧЕРЕЗ SYSTEMD) 
+
+```bash
+nano /etc/systemd/system/remindingtg-bot.service
+```
+
+```bash
+[Unit]
+Description=RemindingTG Telegram Bot
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+
+WorkingDirectory=/opt/RemindingTG-Bot
+
+ExecStart=/opt/RemindingTG-Bot/venv/bin/python /opt/RemindingTG-Bot/bot.py
+
+Restart=always
+RestartSec=5
+
+# Чтобы Python сразу писал логи без буферизации
+Environment=PYTHONUNBUFFERED=1
+
+[Install]
+WantedBy=multi-user.target
+```
+
+```bash
+systemctl daemon-reload
+systemctl enable --now remindingtg-bot
+```
+
 
 ### 3. Запустите бота
 
